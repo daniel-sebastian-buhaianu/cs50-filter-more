@@ -80,24 +80,9 @@ void blur(int height, int width, RGBTRIPLE image[height][width])
 {
 	int bi_height = height + 2;
 	int bi_width = width + 2;
-	RGBTRIPLE bordered_image[bi_height][bi_width];
-	RGBTRIPLE black_pixel = { .rgbtRed = 0, .rgbtGreen = 0, .rgbtBlue = 0 };
-
 	// Border the image with black pixels
-	for (int i = 0; i < bi_height; i++)
-	{
-		for (int j = 0; j < bi_width; j++)
-		{
-			if (i == 0 || i == bi_height - 1 || j == 0 || j == bi_width - 1)
-			{
-				bordered_image[i][j] = black_pixel;
-			}
-			else
-			{
-				bordered_image[i][j] = image[i][j];
-			}
-		}
-	}
+	RGBTRIPLE bordered_image[bi_height][bi_width];
+	border_image(height, width, image, bordered_image);
 
 	// Apply blur to image
 	for (int i = 1; i < bi_height - 1; i++)
@@ -113,6 +98,29 @@ void blur(int height, int width, RGBTRIPLE image[height][width])
 // Detect edges
 void edges (int height, int width, RGBTRIPLE image[height][width])
 {
+	return;
+}
+
+// Border a 2-D image array with black pixels
+void border_image(int height, int width, RGBTRIPLE image[height][width], RGBTRIPLE bordered_image[height + 2][width + 2])
+{
+	int bi_height = height + 2;
+	int bi_width = width + 2;
+	RGBTRIPLE black_pixel = { .rgbtRed = 0, .rgbtGreen = 0, .rgbtBlue = 0 };
+	for (int i = 0; i < bi_height; i++)
+	{
+		for (int j = 0; j < bi_width; j++)
+		{
+			if (i == 0 || i == bi_height - 1 || j == 0 || j == bi_width - 1)
+			{
+				bordered_image[i][j] = black_pixel;
+			}
+			else
+			{
+				bordered_image[i][j] = image[i][j];
+			}
+		}
+	}
 	return;
 }
 
