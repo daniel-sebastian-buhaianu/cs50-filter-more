@@ -12,5 +12,5 @@ void edges(int height, int width, RGBTRIPLE image[height][width]);
 // Blur image
 void blur(int height, int width, RGBTRIPLE image[height][width]);
 
-// Calculate blur rgb values for image[i][j] based on its neighbours
-RGBTRIPLE calc_blur_rgb(int count, ...);
+// Calculate blur rgb values for pixel image[i][j]
+RGBTRIPLE calc_blur_rgb(int index_i, int index_j, int height, int width, RGBTRIPLE image[height][width]);

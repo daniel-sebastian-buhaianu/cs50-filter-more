@@ -10,16 +10,12 @@ void grayscale(int height, int width, RGBTRIPLE image[height][width])
 	{
 		for (int j = 0; j < width; j++)
 		{
-			// get rgb values from image[i][j]
-			BYTE blue_hex, green_hex, red_hex;
-			blue_hex = image[i][j].rgbtBlue;
-			green_hex = image[i][j].rgbtGreen;
-			red_hex = image[i][j].rgbtRed;
-
 			// calculate gray shade using the average method
-			BYTE gray_hex = round( (blue_hex + green_hex + red_hex) / 3.0 );
+			BYTE gray_hex = round( (image[i][j].rgbtBlue +
+						image[i][j].rgbtGreen +
+						image[i][j].rgbtRed) / 3.0 );
 
-			// replace rgb with gray
+			// replace rgb with new gray shade
 			image[i][j].rgbtBlue = gray_hex;
 			image[i][j].rgbtGreen = gray_hex;
 			image[i][j].rgbtRed = gray_hex;
@@ -82,88 +78,61 @@ void reflect(int height, int width, RGBTRIPLE image[height][width])
 // Blur image
 void blur(int height, int width, RGBTRIPLE image[height][width])
 {
-	for (int i = 0; i < height; i++)
+	int bi_height = height + 2;
+	int bi_width = width + 2;
+	RGBTRIPLE bordered_image[bi_height][bi_width];
+	RGBTRIPLE black_pixel = { .rgbtRed = 0, .rgbtGreen = 0, .rgbtBlue = 0 };
+
+	// Border the image with black pixels
+	for (int i = 0; i < bi_height; i++)
 	{
-		for (int j = 0; j < width; j++)
+		for (int j = 0; j < bi_width; j++)
 		{
-			/*
-				special cases: [0][j], [height - 1][j], [i][0], [i][width -1]
-			*/
-			if (i == 0)
+			if (i == 0 || i == bi_height - 1 || j == 0 || j == bi_width - 1)
 			{
-				if (j == 0)
-				{
-					image[i][j] = calc_blur_rgb(4, image[i][j], image[i][j + 1], image[i + 1][j], image[i + 1][j + 1]);
-				}
-				else if (j == width - 1)
-				{
-					image[i][j] = calc_blur_rgb(4, image[i][j], image[i][j - 1], image[i + 1][j - 1], image[i + 1][j]);
-				}
-				else
-				{
-					image[i][j] = calc_blur_rgb(6, image[i][j], image[i][j - 1], image[i][j + 1], image[i + 1][j - 1], image[i + 1][j], image[i + 1][j + 1]);
-				}
-			}
-			else if (i == height - 1)
-			{
-				if (j == 0)
-				{
-					image[i][j] = calc_blur_rgb(4, image[i][j], image[i - 1][j], image[i - 1][j + 1], image[i][j + 1]);
-				}
-				else if (j == width - 1)
-				{
-					image[i][j] = calc_blur_rgb(4, image[i][j], image[i][j - 1], image[i - 1][j - 1], image[i - 1][j]);
-				}
-				else
-				{
-					image[i][j] = calc_blur_rgb(6, image[i][j], image[i][j - 1], image[i - 1][j - 1], image[i - 1][j], image[i - 1][j + 1], image[i][j + 1]);
-				}
-			}
-			else if (j == 0)
-			{
-				image[i][j] = calc_blur_rgb(6, image[i][j], image[i - 1][j], image[i - 1][j + 1], image[i][j + 1], image[i + 1][j + 1], image[i + 1][j]);
-			}
-			else if (j == width - 1)
-			{
-				image[i][j] = calc_blur_rgb(6, image[i][j], image[i - 1][j], image[i - 1][j - 1], image[i][j - 1], image[i + 1][j - 1], image[i + 1][j]);
+				bordered_image[i][j] = black_pixel;
 			}
 			else
 			{
-				image[i][j] = calc_blur_rgb(9, image[i - 1][j - 1], image[i - 1][j], image[i - 1][j +1], image[i][j - 1], image[i][j], image[i][j + 1], image[i + 1][j - 1], image[i + 1][j], image[i + 1][j + 1]);
-
+				bordered_image[i][j] = image[i][j];
 			}
+		}
+	}
+
+	// Apply blur to image
+	for (int i = 1; i < bi_height - 1; i++)
+	{
+		for (int j = 1; j < bi_width - 1; j++)
+		{
+			image[i - 1][j - 1] = calc_blur_rgb(i, j, bi_height, bi_width, bordered_image);
 		}
 	}
     return;
 }
 
 // Detect edges
-void edges(int height, int width, RGBTRIPLE image[height][width])
+void edges (int height, int width, RGBTRIPLE image[height][width])
 {
 	return;
 }
 
-// Calculate blur rgb values for a pixel based on N neighbours
-RGBTRIPLE calc_blur_rgb(int count, ...)
+// Calculate blur rgb values for pixel image[i][j]
+RGBTRIPLE calc_blur_rgb(int index_i, int index_j, int height, int width, RGBTRIPLE image[height][width])
 {
-	va_list ap;
-	int j;
 	RGBTRIPLE triple, blur_triple;
-	float avg_red = 0.0, avg_green = 0.0, avg_blue = 0.0;
-
-	va_start(ap, count);
-	for (j = 0; j < count; j++)
+	float blur_red = 0.0, blur_green = 0.0, blur_blue = 0.0;
+	for (int i = index_i - 1; i <= index_i + 1; i++)
 	{
-		triple = va_arg(ap, RGBTRIPLE);
-		avg_red += triple.rgbtRed / (float)count;
-		avg_green += triple.rgbtGreen / (float)count;
-		avg_blue += triple.rgbtBlue / (float)count;
+		for (int j = index_j - 1; j <= index_j + 1; j++)
+		{
+			triple = image[i][j];
+			blur_red += triple.rgbtRed / 9.0;
+			blur_green += triple.rgbtGreen / 9.0;
+			blur_blue += triple.rgbtBlue / 9.0;
+		}
 	}
-	va_end(ap);
-
-	blur_triple.rgbtRed = round(avg_red);
-	blur_triple.rgbtGreen = round(avg_green);
-	blur_triple.rgbtBlue = round(avg_blue);
-
+	blur_triple.rgbtRed = round(blur_red);
+	blur_triple.rgbtGreen = round(blur_green);
+	blur_triple.rgbtBlue = round(blur_blue);
 	return blur_triple;
 }
