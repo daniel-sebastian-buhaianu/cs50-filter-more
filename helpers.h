@@ -17,3 +17,6 @@ void border_image(int height, int width, RGBTRIPLE image[height][width], RGBTRIP
 
 // Calculate blur rgb values for pixel image[i][j]
 RGBTRIPLE calc_blur_rgb(int index_i, int index_j, int height, int width, RGBTRIPLE image[height][width]);
+
+// Calculate edge rgb values for pixel image[i][j]
+RGBTRIPLE calc_edge(int index_i, int index_j, int height, int width, RGBTRIPLE image[height][width]);
